@@ -132,7 +132,7 @@ def preview_file(filename):
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'tif', 'tiff'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def remove_backgrounds():
@@ -141,7 +141,7 @@ def remove_backgrounds():
     upload_folder = app.config['UPLOAD_FOLDER']
     
     for filename in sorted(os.listdir(upload_folder)):
-        if filename.endswith(('.png', '.jpg', '.jpeg')):
+        if filename.endswith(('.png', '.jpg', '.jpeg', '.tif', '.tiff')):
             input_path = os.path.join(upload_folder, filename)
             output_path = os.path.join(upload_folder, f'nobg_{filename}')
             
