@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Image Reconstruction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>3D Image Reconstruction</h1>
+            <p>Upload 4-5 images from different angles to create a 3D model</p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="drop-zone" id="dropZone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p class="drop-text">Drag & drop images here</p>
+                    <p class="drop-subtext">or click to browse</p>
+                    <input type="file" id="fileInput" multiple accept="image/*" hidden>
+                </div>
+
+                <div class="image-preview" id="imagePreview"></div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="uploadBtn" disabled>
+                        Upload Images
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn" disabled>
+                        Clear All
+                    </button>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section class="processing-section hidden" id="processingSection">
+                <h2>Generate 3D Model</h2>
+                
+                <div class="format-selector">
+                    <label>
+                        <input type="radio" name="format" value="stl" checked>
+                        <span class="format-option">
+                            <strong>STL</strong>
+                            <small>Standard format for 3D printing</small>
+                        </span>
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="ply">
+                        <span class="format-option">
+                            <strong>PLY (Colored)</strong>
+                            <small>Includes color information</small>
+                        </span>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary" id="processBtn">
+                    Generate 3D Model
+                </button>
+            </section>
+
+            <!-- Progress Section -->
+            <section class="progress-section hidden" id="progressSection">
+                <div class="progress-indicator">
+                    <div class="spinner"></div>
+                    <p id="progressText">Processing images...</p>
+                </div>
+            </section>
+
+            <!-- Download Section -->
+            <section class="download-section hidden" id="downloadSection">
+                <div class="success-message">
+                    <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <h2>3D Model Ready!</h2>
+                    <p>Your model has been successfully generated</p>
+                </div>
+                
+                <button class="btn btn-primary" id="downloadBtn">
+                    Download Model
+                </button>
+                
+                <button class="btn btn-secondary" id="restartBtn">
+                    Create Another Model
+                </button>
+            </section>
+
+            <!-- Error Section -->
+            <div class="error-message hidden" id="errorMessage">
+                <strong>Error:</strong> <span id="errorText"></span>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
