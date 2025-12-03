@@ -15,7 +15,7 @@ from skimage import measure
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['OUTPUT_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output')
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB max file size
 
 # Create necessary directories
 for folder in [app.config['UPLOAD_FOLDER'], app.config['OUTPUT_FOLDER']]:
@@ -188,7 +188,7 @@ def generate_voxel_grid(image_paths):
     silhouettes = [cv2.dilate(sil, kernel, iterations=2) for sil in silhouettes]
     
     # Define voxel grid parameters
-    voxel_resolution = 180  # Increased for better detail
+    voxel_resolution = 256  # Higher resolution for smoother surfaces
     grid_size = max(h, w)
     
     # Calculate angles for each view (assuming orthogonal views: 0°, 90°, 180°, 270°)
@@ -261,7 +261,7 @@ def create_mesh_from_voxels(voxel_data):
     
     # Apply Marching Cubes algorithm
     print("Running Marching Cubes algorithm...")
-    vertices, faces, normals, _ = measure.marching_cubes(voxels, level=0.5, spacing=(2.0/resolution, 2.0/resolution, 2.0/resolution))
+    vertices, faces, normals, _ = measure.marching_cubes(voxels, level=0.3, spacing=(2.0/resolution, 2.0/resolution, 2.0/resolution))
     
     # Center the mesh
     vertices -= np.array([1.0, 1.0, 1.0])
@@ -296,6 +296,12 @@ def create_mesh_from_voxels(voxel_data):
     mesh.remove_duplicated_triangles()
     mesh.remove_duplicated_vertices()
     mesh.remove_non_manifold_edges()
+    
+    # Apply Laplacian smoothing to reduce blocky appearance
+    mesh = mesh.filter_smooth_laplacian(number_of_iterations=5, lambda_filter=0.5)
+    
+    # Recompute normals after smoothing
+    mesh.compute_vertex_normals()
     
     print(f"Marching Cubes generated {len(vertices)} vertices and {len(faces)} faces")
     
