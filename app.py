@@ -40,6 +40,9 @@ def upload_images():
         if len(files) < 4:
             return jsonify({'error': 'Please upload at least 4 images'}), 400
         
+        if len(files) > 20:
+            return jsonify({'error': 'Maximum 20 images allowed'}), 400
+        
         image_paths = []
         for i, file in enumerate(files):
             if file and allowed_file(file.filename):
@@ -101,7 +104,8 @@ def process_images():
         return jsonify({
             'success': True,
             'message': '3D model generated successfully',
-            'filename': os.path.basename(output_file)
+            'filename': os.path.basename(output_file),
+            'preview_available': output_format == 'ply'
         })
     
     except Exception as e:
@@ -116,6 +120,14 @@ def download_file(filename):
     filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
     if os.path.exists(filepath):
         return send_file(filepath, as_attachment=True, download_name=filename)
+    return jsonify({'error': 'File not found'}), 404
+
+@app.route('/preview/<filename>')
+def preview_file(filename):
+    """Serve model file for 3D preview"""
+    filepath = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, mimetype='application/octet-stream')
     return jsonify({'error': 'File not found'}), 404
 
 def allowed_file(filename):

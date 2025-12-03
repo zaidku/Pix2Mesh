@@ -54,6 +54,12 @@ function handleFiles(files) {
         return;
     }
     
+    const totalFiles = selectedFiles.length + imageFiles.length;
+    if (totalFiles > 20) {
+        showError(`Maximum 20 images allowed. You can add ${20 - selectedFiles.length} more images.`);
+        return;
+    }
+    
     selectedFiles = [...selectedFiles, ...imageFiles];
     updatePreview();
     updateButtons();
@@ -87,11 +93,14 @@ function removeImage(index) {
 function updateButtons() {
     const hasFiles = selectedFiles.length > 0;
     const hasEnoughFiles = selectedFiles.length >= 4;
+    const tooManyFiles = selectedFiles.length > 20;
     
-    uploadBtn.disabled = !hasEnoughFiles;
+    uploadBtn.disabled = !hasEnoughFiles || tooManyFiles;
     clearBtn.disabled = !hasFiles;
     
-    if (hasFiles && !hasEnoughFiles) {
+    if (tooManyFiles) {
+        showError(`Maximum 20 images allowed (currently ${selectedFiles.length})`);
+    } else if (hasFiles && !hasEnoughFiles) {
         showError(`Please add at least 4 images (currently ${selectedFiles.length})`);
     } else {
         hideError();
@@ -177,6 +186,12 @@ processBtn.addEventListener('click', async () => {
         }
         
         generatedFilename = data.filename;
+        
+        // Show preview if PLY format
+        if (data.preview_available) {
+            await load3DPreview(data.filename);
+        }
+        
         showDownloadSection();
         
     } catch (error) {
@@ -235,3 +250,102 @@ function hideError() {
 
 // Initial state
 updateButtons();
+
+// 3D Preview using Three.js
+async function load3DPreview(filename) {
+    const previewContainer = document.getElementById('modelPreview');
+    if (!previewContainer) return;
+    
+    // Clear previous preview
+    previewContainer.innerHTML = '';
+    
+    try {
+        // Dynamically load Three.js
+        if (typeof THREE === 'undefined') {
+            await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js');
+            await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/PLYLoader.js');
+            await loadScript('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js');
+        }
+        
+        // Setup scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0e17);
+        
+        const camera = new THREE.PerspectiveCamera(75, previewContainer.clientWidth / previewContainer.clientHeight, 0.1, 1000);
+        camera.position.z = 2;
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(previewContainer.clientWidth, previewContainer.clientHeight);
+        previewContainer.appendChild(renderer.domElement);
+        
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+        
+        // Add orbit controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // Load PLY model
+        const loader = new THREE.PLYLoader();
+        loader.load(`/preview/${filename}`, (geometry) => {
+            geometry.computeVertexNormals();
+            
+            const material = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                flatShading: false
+            });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            
+            // Center and scale the model
+            geometry.computeBoundingBox();
+            const center = new THREE.Vector3();
+            geometry.boundingBox.getCenter(center);
+            mesh.position.sub(center);
+            
+            const size = new THREE.Vector3();
+            geometry.boundingBox.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            mesh.scale.multiplyScalar(1.5 / maxDim);
+            
+            scene.add(mesh);
+            
+            // Add rotation animation
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (previewContainer.clientWidth > 0) {
+                camera.aspect = previewContainer.clientWidth / previewContainer.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(previewContainer.clientWidth, previewContainer.clientHeight);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading 3D preview:', error);
+        previewContainer.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">Preview unavailable for STL format</p>';
+    }
+}
+
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}

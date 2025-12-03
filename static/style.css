@@ -285,6 +285,24 @@ section {
     color: var(--text-secondary);
 }
 
+/* 3D Preview Container */
+.preview-container {
+    width: 100%;
+    height: 400px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+    position: relative;
+}
+
+.preview-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
 /* Error Message */
 .error-message {
     background: rgba(239, 68, 68, 0.1);
