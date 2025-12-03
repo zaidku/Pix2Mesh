@@ -45,12 +45,16 @@ fileInput.addEventListener('change', (e) => {
 
 // File handling
 function handleFiles(files) {
-    const imageFiles = Array.from(files).filter(file => 
-        file.type.startsWith('image/')
-    );
+    const imageFiles = Array.from(files).filter(file => {
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/tiff', 'image/tif'];
+        const validExtensions = ['.png', '.jpg', '.jpeg', '.tif', '.tiff'];
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        return validTypes.includes(file.type) || hasValidExtension;
+    });
     
     if (imageFiles.length === 0) {
-        showError('Please select valid image files');
+        showError('Please select valid image files (PNG, JPG, JPEG, TIF, TIFF)');
         return;
     }
     
