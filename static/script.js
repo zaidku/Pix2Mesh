@@ -2,6 +2,8 @@
 let selectedFiles = [];
 let uploadedCount = 0;
 let generatedFilename = '';
+let cameraStream = null;
+let capturedPhotos = [];
 
 // Elements
 const dropZone = document.getElementById('dropZone');
@@ -20,6 +22,17 @@ const downloadSection = document.getElementById('downloadSection');
 const errorMessage = document.getElementById('errorMessage');
 const errorText = document.getElementById('errorText');
 const progressText = document.getElementById('progressText');
+
+// Camera elements
+const openCameraBtn = document.getElementById('openCameraBtn');
+const cameraModal = document.getElementById('cameraModal');
+const closeCameraBtn = document.getElementById('closeCameraBtn');
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const captureBtn = document.getElementById('captureBtn');
+const finishCaptureBtn = document.getElementById('finishCaptureBtn');
+const captureCount = document.getElementById('captureCount');
+const cameraPreviewGrid = document.getElementById('cameraPreviewGrid');
 
 // Drop zone handlers
 dropZone.addEventListener('click', () => fileInput.click());
@@ -363,6 +376,106 @@ async function load3DPreview(filename) {
         console.error('Error loading 3D preview:', error);
         previewContainer.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 20px;">Preview unavailable for STL format</p>';
     }
+}
+
+// Camera functionality
+openCameraBtn.addEventListener('click', async () => {
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            } 
+        });
+        cameraVideo.srcObject = cameraStream;
+        cameraModal.classList.remove('hidden');
+        capturedPhotos = [];
+        updateCameraPreview();
+    } catch (error) {
+        showError('Unable to access camera. Please check permissions.');
+        console.error('Camera error:', error);
+    }
+});
+
+closeCameraBtn.addEventListener('click', () => {
+    stopCamera();
+});
+
+captureBtn.addEventListener('click', () => {
+    const canvas = cameraCanvas;
+    const video = cameraVideo;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+        const file = new File([blob], `capture_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        capturedPhotos.push(file);
+        updateCameraPreview();
+        
+        if (capturedPhotos.length >= 4) {
+            finishCaptureBtn.disabled = false;
+        }
+    }, 'image/jpeg', 0.95);
+});
+
+finishCaptureBtn.addEventListener('click', () => {
+    if (capturedPhotos.length === 0) return;
+    
+    const totalFiles = selectedFiles.length + capturedPhotos.length;
+    if (totalFiles > 20) {
+        showError(`Maximum 20 images allowed. You can add ${20 - selectedFiles.length} more images.`);
+        return;
+    }
+    
+    selectedFiles = [...selectedFiles, ...capturedPhotos];
+    updatePreview();
+    updateButtons();
+    stopCamera();
+    hideError();
+});
+
+function updateCameraPreview() {
+    captureCount.textContent = capturedPhotos.length;
+    cameraPreviewGrid.innerHTML = '';
+    
+    capturedPhotos.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'camera-preview-item';
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="Captured ${index + 1}">
+                <button class="remove-preview" onclick="removeCapturedPhoto(${index})">×</button>
+            `;
+            cameraPreviewGrid.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeCapturedPhoto(index) {
+    capturedPhotos.splice(index, 1);
+    updateCameraPreview();
+    
+    if (capturedPhotos.length < 4) {
+        finishCaptureBtn.disabled = true;
+    }
+}
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    cameraModal.classList.add('hidden');
+    cameraVideo.srcObject = null;
+    capturedPhotos = [];
+    updateCameraPreview();
 }
 
 function loadScript(src) {

@@ -27,6 +27,16 @@
                     <input type="file" id="fileInput" multiple accept="image/png,image/jpeg,image/jpg,image/tiff,image/tif,.png,.jpg,.jpeg,.tif,.tiff" hidden>
                 </div>
 
+                <div class="camera-button-container">
+                    <button class="btn btn-camera" id="openCameraBtn">
+                        <svg class="camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Capture from Camera
+                    </button>
+                </div>
+
                 <div class="image-preview" id="imagePreview"></div>
 
                 <div class="button-group">
@@ -125,6 +135,35 @@
                 <strong>Error:</strong> <span id="errorText"></span>
             </div>
         </main>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="camera-modal hidden" id="cameraModal">
+        <div class="camera-modal-content">
+            <div class="camera-header">
+                <h2>Capture Photos</h2>
+                <button class="close-camera" id="closeCameraBtn">&times;</button>
+            </div>
+            <div class="camera-container">
+                <video id="cameraVideo" autoplay playsinline></video>
+                <canvas id="cameraCanvas" hidden></canvas>
+            </div>
+            <div class="camera-controls">
+                <div class="capture-count">
+                    <span id="captureCount">0</span> photos captured
+                </div>
+                <button class="btn btn-primary" id="captureBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    Capture Photo
+                </button>
+                <button class="btn btn-secondary" id="finishCaptureBtn" disabled>
+                    Done (Use Photos)
+                </button>
+            </div>
+            <div class="camera-preview-grid" id="cameraPreviewGrid"></div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
