@@ -1,0 +1,35 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Ignore virtual environment
+venv/
+env/
+ENV/
+
+# Ignore uploads and output
+uploads/*
+output/*
+!uploads/.gitkeep
+!output/.gitkeep
+
+# Ignore compiled C++
+*.exe
+*.o
+*.obj
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore logs
+*.log
