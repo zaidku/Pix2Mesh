@@ -381,20 +381,58 @@ async function load3DPreview(filename) {
 // Camera functionality
 openCameraBtn.addEventListener('click', async () => {
     try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+        // Check if getUserMedia is supported
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showError('Camera access is not supported in this browser. Please use Chrome, Firefox, or Edge.');
+            return;
+        }
+
+        // Try with rear camera first, fallback to any available camera
+        let constraints = { 
             video: { 
                 facingMode: 'environment',
                 width: { ideal: 1920 },
                 height: { ideal: 1080 }
             } 
-        });
+        };
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (err) {
+            // Fallback: try without facingMode constraint
+            console.log('Rear camera not available, trying default camera');
+            constraints = { 
+                video: { 
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                } 
+            };
+            cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        }
+
         cameraVideo.srcObject = cameraStream;
         cameraModal.classList.remove('hidden');
         capturedPhotos = [];
         updateCameraPreview();
     } catch (error) {
-        showError('Unable to access camera. Please check permissions.');
         console.error('Camera error:', error);
+        let errorMsg = 'Unable to access camera. ';
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMsg += 'Please allow camera access in your browser settings.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMsg += 'No camera found on this device.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMsg += 'Camera is already in use by another application.';
+        } else if (error.name === 'OverconstrainedError') {
+            errorMsg += 'Camera does not meet the required specifications.';
+        } else if (error.name === 'SecurityError') {
+            errorMsg += 'Camera access requires HTTPS or localhost.';
+        } else {
+            errorMsg += error.message || 'Unknown error occurred.';
+        }
+        
+        showError(errorMsg);
     }
 });
 

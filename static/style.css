@@ -334,6 +334,13 @@ section {
     margin-top: 1.5rem;
 }
 
+.camera-hint {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    line-height: 1.4;
+}
+
 .btn-camera {
     background: var(--bg-card);
     color: var(--text-primary);
