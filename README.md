@@ -11,6 +11,7 @@ Pix2Mesh converts image data into 3D mesh models suitable for 3D printing, visua
 ## Key Features
 
 - **Modern Web Interface** - Responsive dark-themed UI with drag-and-drop functionality
+- **Webcam Capture** - Built-in camera support for live photo capture directly from browser
 - **Three Reconstruction Methods**:
   - **Voxel Carving** - Visual hull reconstruction for turntable captures
   - **Structure-from-Motion** - OpenCV-based photogrammetry with SIFT feature matching
@@ -111,20 +112,21 @@ Access the web interface at: `http://localhost:5000`
 ### 3D Reconstruction Workflow
 
 1. **Image Acquisition**
+   - **Upload Files**: Drag images into the upload zone or use file selector
+   - **Capture from Camera**: Click camera button to take photos directly from webcam
+     - Requires HTTPS or localhost for browser security
+     - Minimum 4 photos required
+     - Best for: Rotating around a stationary object
    - For photos: Capture 6-12 images with 60-80% overlap
    - For CT/MRI: Export scan slices as TIFF files
    - Maintain consistent lighting for photographs
 
-2. **Image Upload**
-   - Drag images into the upload zone or use file selector
-   - Preview thumbnails confirm successful upload
-
-3. **Method Selection**
+2. **Method Selection**
    - **Voxel Carving**: For turntable captures
    - **Structure-from-Motion**: For overlapping photos of the same object
    - **CT/MRI Stack**: For medical scan TIFF slices
 
-4. **Format Selection**
+3. **Format Selection**
    - STL: For 3D printing and CAD applications
    - PLY: For visualization with vertex colors
 
